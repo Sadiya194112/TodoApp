@@ -15,8 +15,8 @@ This is a simple Vue.js Todo application that allows users to:<br>
 
 1. **Clone the repository**: <br>
 
-    git clone <your-repository-url>
-    cd <project-directory>
+    git clone "your-repository-url"
+    cd "project-directory"
 
 
 2. **Install dependencies**:<br>
