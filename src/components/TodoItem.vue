@@ -1,44 +1,78 @@
 <template>
-  <form @submit.prevent="addTodo">
-    <input
-      class="todo-input"
-      type="text"
-      placeholder="Enter a new task"
+  <v-form @submit.prevent="addTodo">
+    <v-text-field
       v-model="task"
-    />
-  </form>
+      label="Enter a new task"
+      :rules="rules.required"
+    ></v-text-field>
+  </v-form>
 
-  <div class="buttons">
-    <button @click="fetchTodos">Fetch Todos!</button>
-    <button @click="clearCompleted">Clear Completed</button>
-    <button @click="showPending">Show Pending</button>
-    <button @click="showCompleted">Show Completed</button>
+  <div class="button">
+    <v-row align="center" justify="center">
+      <v-col cols="auto">
+        <v-btn @click="fetchTodos" color="primary" >Fetch Todos!</v-btn>
+      </v-col>
+      <v-col cols="auto">
+        <v-btn @click="clearCompleted" color="success">Clear Completed</v-btn>
+      </v-col>
+
+      <v-col cols="auto">
+        <v-btn @click="showPending" color="warning">Show Pending</v-btn>
+      </v-col>
+
+      <v-col cols="auto">
+        <v-btn @click="showCompleted" color="info">Show Completed</v-btn>
+      </v-col>
+    </v-row>
   </div>
 
-  <div v-if="displayedTodos.length">
-    <div v-for="(todo, index) in displayedTodos" :key="todo.id">
-      {{ (currentPage - 1) * perPage + index + 1 }}. {{ todo.todo }} - {{ todo.completed ? 'Completed' : 'Pending' }}
-    </div>
-  </div>
+
+  <v-container >
+    <v-row no-gutters  v-for="(todo, index) in displayedTodos" :key="index">
+      <v-col v-for="n in 2" :key="n" :cols="n === 1 ? 8:4">
+        <v-card
+        class="pa-2"
+        title
+        outlined
+        >
+          <span class="text-h6" v-if="n === 1"> {{ (currentPage - 1) * perPage + index + 1 }}. {{ todo.todo }} </span>
+          <span class="text-h6" v-else> {{ todo.completed ? 'Completed' : 'Pending' }}</span>
+        </v-card>
+      </v-col>
+
+    </v-row>
+  </v-container>
+
+  <TodoList />
+
 
   <div v-if="pages.length" class="pagination">
-    <button
+    <v-btn
       v-for="page in pages"
       :key="page"
       @click="changePage(page)"
       :class="{ active: currentPage === page }">
       {{ page }}
-    </button>
+    </v-btn>
   </div>
 </template>
 
 <script>
+import TodoList from './TodoList.vue';
 export default {
+  components: {
+    TodoList,
+  },
   data() {
     return {
+      rules: {
+        required: [value => !!value || "Required"]
+      },
+
       task: "",
       newId: 0,
       todoArr: [],
+      tempArr: [],
       totalTodos: 0,
 
 
@@ -63,7 +97,7 @@ export default {
 
         this.todoArr = todos;
         this.totalTodos = todos.length;
-        
+
         console.log(this.totalTodos)
 
         this.setPages();
@@ -82,19 +116,28 @@ export default {
     },
 
     showPending() {
-      this.todoArr = this.todoArr.filter(todo => !todo.completed);
-      this.$store.dispatch("showPending");
-
+      this.tempArr = this.todoArr
+      this.todoArr = this.todoArr.filter(todo => todo.completed);
       this.totalTodos = this.todoArr.length;
       this.setPages();
+
+      this.todoArr = this.tempArr
+      this.todoArr = this.todoArr.filter(todo => !todo.completed)
+      this.$store.dispatch("showPending");
     },
 
     showCompleted() {
-      this.todoArr = this.todoArr.filter(todo => todo.completed);
-      this.$store.dispatch("showCompleted");
-
+      this.tempArr = this.todoArr
+      this.todoArr = this.todoArr.filter(todo => !todo.completed);
       this.totalTodos = this.todoArr.length;
       this.setPages();
+
+      this.todoArr = this.tempArr
+      this.todoArr = this.todoArr.filter(todo => todo.completed)
+
+      this.$store.dispatch("showCompleted");
+
+
     },
 
 
@@ -126,44 +169,13 @@ export default {
 </script>
 
 <style scoped>
-.todo-input {
-  font-family: "Open Sans", sans-serif;
-  width: 100%;
-  padding: 0.5rem;
-  font-size: 1rem;
-  outline: none;
-  border-radius: 0.25rem;
-  border-style: none;
-  border: solid 1px lightgray;
-  box-sizing: border-box;
-}
-
-.buttons {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin-bottom: 1rem;
-}
-
-button {
-  padding: 0.5rem 0.5rem;
-  font-size: 1rem;
-  border-radius: 0.25rem;
-  border: 1px solid #ccc;
-  cursor: pointer;
-  transition: background-color 0.3s;
-}
-
-button:hover {
-  background-color: #f0f0f0;
-}
 
 .pagination {
   margin-top: 1rem;
 }
 
 .pagination button {
-  padding: 0.8rem;
+  padding: 0.3rem;
   margin-right: 0.5rem;
 }
 

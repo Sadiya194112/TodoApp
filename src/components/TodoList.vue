@@ -1,22 +1,32 @@
 <template>
   <div>
-    <ul class="tasks">
-      <li
-        v-for="todo in todos"
-        :key="todo.id"
-        :class="{ completed: todo.completed }"
-        class="task"
-        @click="toggleTodo(todo.id)"
-      >
-        <span class="task-text">{{ todo.task }}</span>
-        <span class="delete" @click.stop="deleteTodo(todo.id)">ⓧ</span>
-      </li>
-    </ul>
+    <v-container >
+    <v-row no-gutters  v-for="(todo, index) in todos" :key="index"
+      :class="{ completed: todo.completed}"
+      class="task"
+      @click="toggleTodo(todo.id)"
+    >
+      <v-col v-for="n in 2" :key="n" :cols="n === 1 ? 8:4">
+        <v-card
+        class="pa-2"
+        title
+        outlined
+        >
+          <span class="task-text" v-if="n === 1"> {{ todo.task }} </span>
+          <span class="delete" v-else @click.stop="deleteTodo(todo.id)">  <v-icon icon="fa fa-close" /></span>
+        </v-card>
+      </v-col>
+
+    </v-row>
+  </v-container>
+
   </div>
 </template>
 
 <script>
+
 export default {
+
   computed: {
     todos() {
       return this.$store.getters.getTodos;
@@ -62,7 +72,7 @@ export default {
 
 .completed .task-text {
   text-decoration: line-through;
-  color: #000000;
+  color: #8a1010;
 }
 
 .completed {

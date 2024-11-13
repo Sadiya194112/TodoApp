@@ -2,7 +2,10 @@ import { createStore } from 'vuex';
 
 export default createStore({
   state: {
-    todos: JSON.parse(localStorage.getItem('todos')) || []
+    todos: JSON.parse(localStorage.getItem('todos')) || [],
+    temp: [],
+    pending: [],
+    comp: [],
   },
 
   getters: {
@@ -16,7 +19,8 @@ export default createStore({
         task: id.task,
         completed: false,
       };
-      state.todos.unshift(newTask);
+      if(newTask.task.trim().length !== 0)
+        state.todos.unshift(newTask);
       localStorage.setItem('todos', JSON.stringify(state.todos))
     },
 
@@ -36,8 +40,8 @@ export default createStore({
       }
     },
 
-    clearCompleted: state => {
-      state.todos = state.todos.filter(todo => !todo.completed);
+    all: state => {
+      // state.todos = state.todos.filter(todo => !todo.completed);
       localStorage.setItem('todos', JSON.stringify(state.todos))
     },
 
@@ -47,12 +51,27 @@ export default createStore({
     },
 
     showPending: state => {
-      state.todos = state.todos.filter(todo => !todo.completed);
-      localStorage.setItem('todos', JSON.stringify(state.todos));
-    },
-    showCompleted: state => {
+      state.temp = state.todos
+
       state.todos = state.todos.filter(todo => todo.completed);
       localStorage.setItem('todos', JSON.stringify(state.todos));
+
+      state.todos = state.temp
+
+      state.todos = state.todos.filter(todo => !todo.completed);
+      localStorage.setItem('todos', JSON.stringify(state.todos));
+
+    },
+    showCompleted: state => {
+      state.temp = state.todos
+
+      state.todos = state.todos.filter(todo => !todo.completed);
+      localStorage.setItem('todos', JSON.stringify(state.todos));
+
+      state.todos = state.temp
+      state.todos = state.todos.filter(todo => todo.completed)
+      localStorage.setItem('todos', JSON.stringify(state.todos));
+
     },
 
   },
@@ -70,8 +89,8 @@ export default createStore({
       commit("deleteTodo", id);
     },
 
-    clearCompleted({ commit }) {
-      commit("clearCompleted");
+    all({ commit }) {
+      commit("all");
     },
 
     showPending({ commit }) {
