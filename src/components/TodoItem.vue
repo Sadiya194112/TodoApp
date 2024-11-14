@@ -1,27 +1,39 @@
 <template>
-  <v-form @submit.prevent="addTodo">
+
+  <v-text-field
+      label="Enter a new task"
+      background-color="grey darken-3"
+      flat
+      type="text">
+      <template #append>
+          <v-btn color="secondary" type="submit">Add</v-btn>
+      </template>
+  </v-text-field>
+  <!-- <v-form   " >
     <v-text-field
-      v-model="task"
+
+      v-model="title"
       label="Enter a new task"
       :rules="rules.required"
-    ></v-text-field>
-  </v-form>
+    >
+  </v-text-field>
+  <v-btn @click="showPending" color="warning">Show Pending</v-btn>
+
+  </v-form> -->
 
   <div class="button">
     <v-row align="center" justify="center">
       <v-col cols="auto">
-        <v-btn @click="fetchTodos" color="primary" >Fetch Todos!</v-btn>
+        <Buttons @click="fetchTodos" text="Fetch"></Buttons>
       </v-col>
       <v-col cols="auto">
-        <v-btn @click="clearCompleted" color="success">Clear Completed</v-btn>
+        <Buttons @click="pendingTask" text="Pending" :dark="true"></Buttons>
       </v-col>
-
       <v-col cols="auto">
-        <v-btn @click="showPending" color="warning">Show Pending</v-btn>
+        <Buttons @click="completedTask" text="Completed"></Buttons>
       </v-col>
-
       <v-col cols="auto">
-        <v-btn @click="showCompleted" color="info">Show Completed</v-btn>
+        <Buttons @click="allTask" text="All" :dark="true"></Buttons>
       </v-col>
     </v-row>
   </div>
@@ -29,22 +41,21 @@
 
   <v-container >
     <v-row no-gutters  v-for="(todo, index) in displayedTodos" :key="index">
-      <v-col v-for="n in 2" :key="n" :cols="n === 1 ? 8:4">
-        <v-card
-        class="pa-2"
-        title
-        outlined
-        >
-          <span class="text-h6" v-if="n === 1"> {{ (currentPage - 1) * perPage + index + 1 }}. {{ todo.todo }} </span>
-          <span class="text-h6" v-else> {{ todo.completed ? 'Completed' : 'Pending' }}</span>
+      <v-col :cols="8">
+        <v-card class="d-flex align-center" outlined>
+        <v-checkbox class="pt-5 checkbox" v-model = "todo.completed" color="success" @click.stop="deleteTask(index)"></v-checkbox><span class="text-h6 delete">{{ todo.todo }} </span>
         </v-card>
       </v-col>
 
+      <v-col :cols="3">
+        <v-card class="d-flex align-center justify-center" outlined>
+          <span class="text-h6 pa-8 "  @click.stop="deleteTodo(todo.id)">  <v-icon icon="fa fa-close" /></span>
+        </v-card>
+      </v-col>
     </v-row>
   </v-container>
 
   <TodoList />
-
 
   <div v-if="pages.length" class="pagination">
     <v-btn
@@ -55,19 +66,25 @@
       {{ page }}
     </v-btn>
   </div>
+
+
 </template>
 
 <script>
 import TodoList from './TodoList.vue';
+import Buttons from './ButtonItem.vue'
 export default {
   components: {
     TodoList,
+    Buttons,
   },
+
   data() {
     return {
       rules: {
         required: [value => !!value || "Required"]
       },
+      title: '',
 
       task: "",
       newId: 0,
@@ -82,63 +99,53 @@ export default {
     };
   },
   methods: {
-    addTodo() {
-      this.$store.dispatch("addTodo", this);
-      this.newId++;
-      this.task = "";
-    },
-
-    async fetchTodos() {
-      const URL = "https://dummyjson.com/todos";
-      try {
-        const response = await fetch(URL);
-        const data = await response.json();
-        const todos = data.todos;
-
-        this.todoArr = todos;
-        this.totalTodos = todos.length;
-
-        console.log(this.totalTodos)
-
-        this.setPages();
-
-      } catch (error) {
-        console.error("Error fetching todos!", error);
+    addTask() {
+      let task = {
+        title: this.title,
+        completed: false,
       }
+      this.$store.commit('taskList/addTask', task)
+      this.title = ""
     },
 
-    clearCompleted() {
-      this.todoArr = this.todoArr.filter(todo => !todo.completed);
-      this.$store.dispatch("clearCompleted");
+    // async fetchTodos() {
+    //   const URL = "https://dummyjson.com/todos";
+    //   try {
+    //     const response = await fetch(URL);
+    //     const data = await response.json();
+    //     const todos = data.todos;
 
-      this.totalTodos = this.todoArr.length;
-      this.setPages();
+    //     this.todoArr = todos;
+    //     this.totalTodos = todos.length;
+
+    //     // console.log(this.totalTodos)
+
+    //     this.setPages();
+
+    //   } catch (error) {
+    //     console.error("Error fetching todos!", error);
+    //   }
+    // },
+
+    fetchTodos(){
+      console.log("Todos are Fetched!")
     },
 
-    showPending() {
-      this.tempArr = this.todoArr
-      this.todoArr = this.todoArr.filter(todo => todo.completed);
-      this.totalTodos = this.todoArr.length;
-      this.setPages();
-
-      this.todoArr = this.tempArr
-      this.todoArr = this.todoArr.filter(todo => !todo.completed)
-      this.$store.dispatch("showPending");
+    completedTask(){
+      console.log("Task Completed!")
+    },
+    pendingTask(){
+      console.log("Pending Tasks")
+    },
+    allTask(){
+      console.log("All Tasks")
     },
 
-    showCompleted() {
-      this.tempArr = this.todoArr
-      this.todoArr = this.todoArr.filter(todo => !todo.completed);
-      this.totalTodos = this.todoArr.length;
-      this.setPages();
-
-      this.todoArr = this.tempArr
-      this.todoArr = this.todoArr.filter(todo => todo.completed)
-
-      this.$store.dispatch("showCompleted");
-
-
+    deleteTask(index){
+      this.tasks.splice(index,1)
+      this.$store.commit(this.deleteTask, index)
     },
+
 
 
     setPages() {
@@ -169,6 +176,11 @@ export default {
 </script>
 
 <style scoped>
+
+.checkbox .delete {
+  text-decoration: line-through;
+  color: #8a1010;
+}
 
 .pagination {
   margin-top: 1rem;

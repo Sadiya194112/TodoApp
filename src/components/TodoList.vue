@@ -1,7 +1,7 @@
 <template>
   <div>
     <v-container >
-    <v-row no-gutters  v-for="(todo, index) in todos" :key="index"
+    <v-row no-gutters  v-for="(todo, index) in tasks" :key="index"
       :class="{ completed: todo.completed}"
       class="task"
       @click="toggleTodo(todo.id)"
@@ -13,7 +13,7 @@
         outlined
         >
           <span class="task-text" v-if="n === 1"> {{ todo.task }} </span>
-          <span class="delete" v-else @click.stop="deleteTodo(todo.id)">  <v-icon icon="fa fa-close" /></span>
+          <span class="delete" v-else>  <v-icon icon="fa fa-close" @click.stop="deleteTask(index)"/></span>
         </v-card>
       </v-col>
 
@@ -27,17 +27,33 @@
 
 export default {
 
+  data(){
+    return {
+      tasks: [],
+    }
+  },
+
   computed: {
-    todos() {
-      return this.$store.getters.getTodos;
+    tasks_comp() {
+      return this.$store.getters['taskList/getTasks'];
+    }
+  },
+  watch: {
+    tasks_comp: {
+      handler(newVal){
+        this.tasks = [...newVal]
+      },
+      deep: true,
+      immediate: true
     },
   },
   methods: {
     toggleTodo(id) {
       this.$store.dispatch("toggleTodo", id);
     },
-    deleteTodo(id) {
-      this.$store.dispatch("deleteTodo", id);
+    deleteTask(index) {
+      this.tasks.splice(index,1)
+      this.$store.commit('taskList/deleteTask', index)
     },
   },
 };
